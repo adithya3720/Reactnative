@@ -153,7 +153,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     width: '100%',
-    gap: 18,
     marginTop: 10,
   },
   socialButton: {
@@ -170,6 +169,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 2,
+    marginHorizontal: 9,
   },
 });
 
