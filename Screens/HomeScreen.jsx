@@ -28,8 +28,18 @@ const HomeScreen = ({ navigation }) => {
   const handleTabPress = (tabName) => {
     setActiveTab(tabName);
 
-    if (tabName === 'Home' && navigation) {
-      navigation.navigate('HomeScreen');
+    if (!navigation) return;
+
+    const routeMap = {
+      Home: 'HomeScreen',
+      Wishlist: 'Wishlist',
+      Categories: 'Categories',
+      Profile: 'Profile',
+    };
+
+    const targetRoute = routeMap[tabName];
+    if (targetRoute) {
+      navigation.navigate(targetRoute);
     }
   };
 
