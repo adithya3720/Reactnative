@@ -41,6 +41,8 @@ const ProfileScreen = () => {
 
         <TouchableOpacity style={styles.button}>
           <Text style={styles.btn}>Proceed</Text>
+          <Text style={styles.btn}>Proceed</Text>
+          
         </TouchableOpacity>
       </View>
     </ScrollView>
