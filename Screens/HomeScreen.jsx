@@ -34,6 +34,7 @@ const HomeScreen = ({ navigation }) => {
       Home: 'HomeScreen',
       Wishlist: 'Wishlist',
       Categories: 'Categories',
+      Cart: 'Cart',
       Profile: 'Profile',
     };
 
@@ -141,7 +142,7 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.productCard}>
               <Image
                 source={{
-                  uri: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30b?w=500',
+                  uri: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500',
                 }}
                 style={styles.productImage}
               />
