@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,40 +8,52 @@ import {
   StyleSheet,
   Image,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 
 const THEME_COLOR = '#078DD3';
 
-const tabs = [
-  { name: 'Home', icon: 'home-outline', activeIcon: 'home' },
-  { name: 'Wishlist', icon: 'heart-outline', activeIcon: 'heart' },
-  { name: 'Categories', icon: 'grid-outline', activeIcon: 'grid' },
-  { name: 'Cart', icon: 'cart-outline', activeIcon: 'cart' },
-  { name: 'Profile', icon: 'person-outline', activeIcon: 'person' },
-];
+const getProducts = async () => {
+  const response = await axios.get('https://fakestoreapi.com/products');
+  return response.data;
+};
 
 const HomeScreen = ({ navigation }) => {
-  const [activeTab, setActiveTab] = useState('Home');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  const handleTabPress = (tabName) => {
-    setActiveTab(tabName);
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    setLoadError('');
 
-    if (!navigation) return;
-
-    const routeMap = {
-      Home: 'HomeScreen',
-      Wishlist: 'Wishlist',
-      Categories: 'Categories',
-      Cart: 'Cart',
-      Profile: 'Profile',
-    };
-
-    const targetRoute = routeMap[tabName];
-    if (targetRoute) {
-      navigation.navigate(targetRoute);
+    try {
+      const result = await getProducts();
+      setProducts(result);
+    } catch {
+      setLoadError('Unable to load products. Check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  const openProduct = (product) => {
+    navigation.navigate('ProductDetails', {
+      product: {
+        ...product,
+        name: product.title,
+        price: `$${product.price}`,
+        rating: product.rating?.rate,
+        reviews: product.rating?.count,
+      },
+    });
   };
 
   return (
@@ -139,85 +151,46 @@ const HomeScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.productContainer}>
-            <View style={styles.productCard}>
-              <Image
-                source={{
-                  uri: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=500',
-                }}
-                style={styles.productImage}
+            {loading ? (
+              <ActivityIndicator
+                size="large"
+                color={THEME_COLOR}
+                style={styles.productsMessage}
               />
-
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>Wireless Headphones</Text>
-                <Text style={styles.rating}>⭐ 4.5 | 120 Reviews</Text>
-                <Text style={styles.price}>
-                  ₹1,499 <Text style={styles.oldPrice}>₹2,499</Text>
-                </Text>
-                <TouchableOpacity style={styles.addButton}>
-                  <Text style={styles.addButtonText}>+ Add to Cart</Text>
+            ) : loadError ? (
+              <View style={styles.productsMessage}>
+                <Text style={styles.productsMessageText}>{loadError}</Text>
+                <TouchableOpacity onPress={loadProducts} style={styles.retryButton}>
+                  <Text style={styles.retryButtonText}>Try Again</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            ) : products.length === 0 ? (
+              <Text style={styles.productsMessageText}>No products available.</Text>
+            ) : (
+              products.map((product) => (
+                <View key={product.id} style={styles.productCard}>
+                  <TouchableOpacity onPress={() => openProduct(product)}>
+                    <Image
+                      source={{ uri: product.image }}
+                      style={styles.productImage}
+                    />
+                  </TouchableOpacity>
 
-            <View style={styles.productCard}>
-              <Image
-                source={{
-                  uri: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500',
-                }}
-                style={styles.productImage}
-              />
-
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>Smart Watch</Text>
-                <Text style={styles.rating}>⭐ 4.7 | 98 Reviews</Text>
-                <Text style={styles.price}>
-                  ₹2,299 <Text style={styles.oldPrice}>₹3,099</Text>
-                </Text>
-                <TouchableOpacity style={styles.addButton}>
-                  <Text style={styles.addButtonText}>+ Add to Cart</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.productCard}>
-              <Image
-                source={{
-                  uri: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500',
-                }}
-                style={styles.productImage}
-              />
-
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>Running Shoes</Text>
-                <Text style={styles.rating}>⭐ 4.6 | 85 Reviews</Text>
-                <Text style={styles.price}>
-                  ₹1,899 <Text style={styles.oldPrice}>₹2,499</Text>
-                </Text>
-                <TouchableOpacity style={styles.addButton}>
-                  <Text style={styles.addButtonText}>+ Add to Cart</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.productCard}>
-              <Image
-                source={{
-                  uri: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500',
-                }}
-                style={styles.productImage}
-              />
-
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>Digital Camera</Text>
-                <Text style={styles.rating}>⭐ 4.8 | 75 Reviews</Text>
-                <Text style={styles.price}>
-                  ₹8,999 <Text style={styles.oldPrice}>₹10,999</Text>
-                </Text>
-                <TouchableOpacity style={styles.addButton}>
-                  <Text style={styles.addButtonText}>+ Add to Cart</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+                  <View style={styles.productInfo}>
+                    <TouchableOpacity onPress={() => openProduct(product)}>
+                      <Text style={styles.productName}>{product.title}</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.rating}>
+                      ⭐ {product.rating?.rate} | {product.rating?.count} Reviews
+                    </Text>
+                    <Text style={styles.price}>${product.price}</Text>
+                    <TouchableOpacity style={styles.addButton}>
+                      <Text style={styles.addButtonText}>+ Add to Cart</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))
+            )}
           </View>
 
           <View style={styles.offerBox}>
@@ -228,28 +201,6 @@ const HomeScreen = ({ navigation }) => {
                 Discover exclusive shopping offers.
               </Text>
             </View>
-          </View>
-
-          <View style={styles.bottomnav}>
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.name;
-              return (
-                <TouchableOpacity
-                  key={tab.name}
-                  style={styles.navItem}
-                  onPress={() => handleTabPress(tab.name)}
-                >
-                  <Ionicons
-                    name={isActive ? tab.activeIcon : tab.icon}
-                    size={23}
-                    color={isActive ? THEME_COLOR : '#8793A5'}
-                  />
-                  <Text style={[styles.navText, isActive && styles.activeNavText]}>
-                    {tab.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
           </View>
         </View>
       </ScrollView>
@@ -384,6 +335,28 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
+  productsMessage: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  productsMessageText: {
+    width: '100%',
+    paddingVertical: 24,
+    textAlign: 'center',
+    color: '#64748B',
+  },
+  retryButton: {
+    marginTop: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: THEME_COLOR,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
   productCard: {
     width: '48%',
     backgroundColor: '#FFFFFF',
@@ -456,35 +429,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#8494A7',
     marginTop: 5,
-  },
-  bottomnav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-    marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
-  },
-  navText: {
-    marginTop: 4,
-    fontSize: 10,
-    color: '#8793A5',
-    fontWeight: '600',
-  },
-  activeNavText: {
-    color: THEME_COLOR,
   },
 });
 

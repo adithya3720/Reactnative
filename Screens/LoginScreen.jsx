@@ -1,7 +1,8 @@
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
-import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import Button from '../components/Button';
 
 const THEME_COLOR = '#078DD3';
 
@@ -15,77 +16,119 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    alert('Login Successful');
-    navigation.navigate('HomeScreen');
+    navigation.navigate('BottomTab', {
+      screen: 'Home',
+      params: { userContact: email.trim() },
+    });
   };
 
   return (
-    <SafeAreaView style={styles.safearea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.view}>
-          <View style={styles.logoSection}>
-            <Ionicons name="bag-handle" size={78} color={THEME_COLOR} />
-            <Text style={styles.title}>FilmHook</Text>
-            <Text style={styles.subtitle}>Market</Text>
-          </View>
+    <ImageBackground
+      source={require('../image(3).png')}
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay}>
+        <SafeAreaView style={styles.safearea}>
+          <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.view}>
+              <View style={styles.logoSection}>
+                <Ionicons name="bag-handle" size={78} color={THEME_COLOR} />
+                <Text style={styles.title}>FilmHook</Text>
+                <Text style={styles.subtitle}>Market</Text>
+              </View>
 
-          <View style={styles.inputBox}>
-            <Ionicons name="person-outline" size={25} color="#748196" />
-            <TextInput
-              placeholder="Enter your Email"
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-          </View>
+              <View style={styles.inputBox}>
+                <Ionicons name="person-outline" size={25} color="#748196" />
+                <TextInput
+                  placeholder="Enter your Email"
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+              </View>
 
-          <View style={styles.inputBox}>
-            <Ionicons name="lock-closed-outline" size={25} color="#748196" />
-            <TextInput
-              placeholder="Enter Your Password"
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-          </View>
+              <View style={styles.inputBox}>
+                <Ionicons name="lock-closed-outline" size={25} color="#748196" />
+                <TextInput
+                  placeholder="Enter Your Password"
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                />
+              </View>
 
-          <TouchableOpacity style={styles.button} onPress={handlelogin}>
-            <Text style={styles.buttonText}>Login</Text>
-          </TouchableOpacity>
+              <Button
+                title="Login"
+                onPress={handlelogin}
+                style={styles.primaryButton}
+                textStyle={styles.primaryButtonText}
+              />
 
-          <View style={styles.socialRow}>
-            <TouchableOpacity style={styles.socialButton}>
-              <FontAwesome name="google" size={27} color="#4285F4" />
-            </TouchableOpacity>
+              <View style={styles.socialRow}>
 
-            <TouchableOpacity style={styles.socialButton}>
-              <Ionicons name="logo-apple" size={30} color="#000000" />
-            </TouchableOpacity>
+  {/* Google */}
+  <TouchableOpacity style={styles.socialButton}>
+    <FontAwesome5
+      name="google"
+      brand
+      size={26}
+      color="#3d4654"
+    />
+  </TouchableOpacity>
 
-            <TouchableOpacity style={styles.socialButton}>
-              <FontAwesome name="facebook" size={27} color="#1877F2" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+  {/* Apple */}
+  <TouchableOpacity style={styles.socialButton}>
+    <FontAwesome5
+      name="apple"
+      brand
+      size={29}
+      color="#000000"
+    />
+  </TouchableOpacity>
+
+  {/* Facebook */}
+  <TouchableOpacity style={styles.socialButton}>
+    <FontAwesome5
+      name="facebook-f"
+      brand
+      size={26}
+      color="#3d4045"
+    />
+  </TouchableOpacity>
+
+</View>
+
+              <Button title="Skip Login" navigation={navigation} />
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(245, 249, 252, 0.55)',
+  },
   safearea: {
     flex: 1,
-    backgroundColor: '#F5F9FC',
   },
   container: {
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 30,
-    backgroundColor: '#F5F9FC',
   },
   view: {
     width: '100%',
@@ -130,7 +173,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#0F172A',
   },
-  button: {
+  primaryButton: {
     width: '100%',
     backgroundColor: THEME_COLOR,
     borderRadius: 14,
@@ -144,7 +187,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  buttonText: {
+  primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',

@@ -8,11 +8,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import CartContext from './CartContext';
 
 const THEME_COLOR = '#078DD3';
 
-const CartScreens = ({ navigation }) => {
+const CartScreens = ({ navigation, route }) => {
   const cartItems = [];
+  const amount = route.params?.amount ?? 150;
 
   const updateQuantity = (id, nextQuantity) => {
     if (nextQuantity <= 0) {
@@ -35,6 +37,7 @@ const CartScreens = ({ navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        <CartContext amount={amount} />
         {cartItems.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="cart-outline" size={60} color="#CBD5E1" />
@@ -42,7 +45,7 @@ const CartScreens = ({ navigation }) => {
             <Text style={styles.emptyText}>Add products to your cart to continue.</Text>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => navigation.navigate('HomeScreen')}
+              onPress={() => navigation.navigate('Home')}
             >
               <Text style={styles.buttonText}>Start Shopping</Text>
             </TouchableOpacity>
