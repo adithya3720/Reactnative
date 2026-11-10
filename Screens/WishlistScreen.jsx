@@ -30,7 +30,7 @@ export default function WishlistScreen({ navigation, route }) {
             <Text style={styles.emptyText}>Save products you love to revisit later.</Text>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => navigation.navigate('HomeScreen')}
+              onPress={() => navigation.navigate('Home')}
             >
               <Text style={styles.buttonText}>Continue Shopping</Text>
             </TouchableOpacity>
@@ -148,4 +148,3 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
-
