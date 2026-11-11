@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from './ThemeContext';
 
 const BLUE = '#078DD3';
 
@@ -25,6 +26,9 @@ const categories = [
 ];
 
 const CategoriesScreens = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -36,10 +40,10 @@ const CategoriesScreens = ({ navigation }) => {
         </View>
 
         <View style={styles.searchBox}>
-          <Ionicons name="search-outline" size={22} color="#7A8799" />
+          <Ionicons name="search-outline" size={22} color={theme.secondaryText} />
           <TextInput
             placeholder="Search categories..."
-            placeholderTextColor="#9AA5B1"
+            placeholderTextColor={theme.secondaryText}
             style={styles.searchInput}
           />
         </View>
@@ -72,10 +76,10 @@ const CategoriesScreens = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F9FC',
+    backgroundColor: theme.background,
   },
   content: {
     paddingBottom: 30,
@@ -91,15 +95,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#0F172A',
+    color: theme.text,
   },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: theme.border,
     marginHorizontal: 20,
     marginTop: 10,
     paddingHorizontal: 12,
@@ -109,7 +113,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 10,
     fontSize: 15,
-    color: '#0F172A',
+    color: theme.text,
   },
   banner: {
     backgroundColor: '#078DD3',
@@ -142,7 +146,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     fontSize: 18,
     fontWeight: '700',
-    color: '#0F172A',
+    color: theme.text,
   },
   categoryGrid: {
     flexDirection: 'row',
@@ -152,12 +156,12 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     width: '48%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: theme.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -172,7 +176,7 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#0F172A',
+    color: theme.text,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
