@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTheme } from '../Screens/ThemeContext';
 
 function Button({ title = 'Skip Login', navigation, onPress, style, textStyle }) {
+  const { theme } = useTheme();
   const handlePress = () => {
     if (onPress) {
       onPress();
@@ -20,7 +22,9 @@ function Button({ title = 'Skip Login', navigation, onPress, style, textStyle })
         onPress={handlePress}
         activeOpacity={0.85}
       >
-        <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+        <Text style={[styles.buttonText, { color: theme.text }, textStyle]}>
+          {title}
+        </Text>
       </TouchableOpacity>
     </View>
   );

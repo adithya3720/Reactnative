@@ -3,10 +3,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import Button from '../components/Button';
+import { useTheme } from './ThemeContext';
 
 const THEME_COLOR = '#078DD3';
 
 const LoginScreen = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -111,7 +114,7 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   background: {
     flex: 1,
     width: '100%',
@@ -119,7 +122,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(245, 249, 252, 0.55)',
+    backgroundColor: theme.background + 'B3',
   },
   safearea: {
     flex: 1,
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 34,
     fontWeight: '700',
-    color: '#0F172A',
+    color: theme.text,
   },
   subtitle: {
     fontSize: 20,
@@ -154,10 +157,10 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: theme.border,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 16,
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     fontSize: 16,
-    color: '#0F172A',
+    color: theme.text,
   },
   primaryButton: {
     width: '100%',
@@ -202,11 +205,11 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: theme.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,

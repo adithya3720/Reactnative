@@ -1,6 +1,7 @@
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
+  Alert,
   View,
   Text,
   TextInput,
@@ -13,18 +14,38 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import { CartStateContext } from './CartStateContext';
+import { useWishlist } from '../Context/WishlistContext';
+import { useTheme } from './ThemeContext';
 
 const THEME_COLOR = '#078DD3';
 
 const getProducts = async () => {
   const response = await axios.get('https://fakestoreapi.com/products');
+  if (!Array.isArray(response.data)) {
+    throw new Error('The products response was not a list.');
+  }
   return response.data;
 };
 
 const HomeScreen = ({ navigation }) => {
+  const { addToCart } = useContext(CartStateContext);
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [feedbackCounts, setFeedbackCounts] = useState({});
+
+  const incrementFeedback = (productId, feedbackType) => {
+    setFeedbackCounts((currentCounts) => ({
+      ...currentCounts,
+      [productId]: {
+        ...(currentCounts[productId] || {}),
+        [feedbackType]: (currentCounts[productId]?.[feedbackType] || 0) + 1,
+      },
+    }));
+  };
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -33,8 +54,12 @@ const HomeScreen = ({ navigation }) => {
     try {
       const result = await getProducts();
       setProducts(result);
-    } catch {
-      setLoadError('Unable to load products. Check your connection and try again.');
+    } catch (error) {
+      setLoadError(
+        error instanceof Error && error.message === 'The products response was not a list.'
+          ? error.message
+          : 'Unable to load products. Check your connection and try again.',
+      );
     } finally {
       setLoading(false);
     }
@@ -56,6 +81,12 @@ const HomeScreen = ({ navigation }) => {
     });
   };
 
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+
+  const openOffers = () => {
+    navigation.navigate('Offers');
+  };
+
   return (
     <SafeAreaView style={styles.safearea}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -72,7 +103,11 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.banner}>
+          <TouchableOpacity
+            style={styles.banner}
+            onPress={openOffers}
+            activeOpacity={0.9}
+          >
             <View style={styles.bannerContent}>
               <Text style={styles.bannerSmall}>SPECIAL OFFER</Text>
               <Text style={styles.bannerTitle}>Mega Sale!</Text>
@@ -144,7 +179,6 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.categoryText}>Beauty</Text>
             </View>
           </ScrollView>
-
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Featured Products</Text>
             <Text style={styles.seeAll}>See All</Text>
@@ -169,12 +203,36 @@ const HomeScreen = ({ navigation }) => {
             ) : (
               products.map((product) => (
                 <View key={product.id} style={styles.productCard}>
-                  <TouchableOpacity onPress={() => openProduct(product)}>
-                    <Image
-                      source={{ uri: product.image }}
-                      style={styles.productImage}
-                    />
-                  </TouchableOpacity>
+                  <View style={styles.productImageContainer}>
+                    <TouchableOpacity onPress={() => openProduct(product)}>
+                      <Image
+                        source={{ uri: product.image }}
+                        style={styles.productImage}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.wishlistButton}
+                      onPress={() => {
+                        if (isInWishlist(product.id)) {
+                          removeFromWishlist(product.id);
+                        } else {
+                          addToWishlist(product);
+                        }
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        isInWishlist(product.id)
+                          ? 'Remove from wishlist'
+                          : 'Add to wishlist'
+                      }
+                    >
+                      <Ionicons
+                        name={isInWishlist(product.id) ? 'heart' : 'heart-outline'}
+                        size={22}
+                        color={isInWishlist(product.id) ? '#E53935' : THEME_COLOR}
+                      />
+                    </TouchableOpacity>
+                  </View>
 
                   <View style={styles.productInfo}>
                     <TouchableOpacity onPress={() => openProduct(product)}>
@@ -184,7 +242,37 @@ const HomeScreen = ({ navigation }) => {
                       ⭐ {product.rating?.rate} | {product.rating?.count} Reviews
                     </Text>
                     <Text style={styles.price}>${product.price}</Text>
-                    <TouchableOpacity style={styles.addButton}>
+                    <View style={styles.feedbackRow}>
+                      <TouchableOpacity
+                        style={styles.feedbackButton}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${feedbackCounts[product.id]?.likes || 0} likes`}
+                        onPress={() => incrementFeedback(product.id, 'likes')}
+                      >
+                        <Ionicons name="thumbs-up-outline" size={16} color={THEME_COLOR} />
+                        <Text style={styles.feedbackCount}>
+                          {feedbackCounts[product.id]?.likes || 0}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.feedbackButton}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${feedbackCounts[product.id]?.dislikes || 0} dislikes`}
+                        onPress={() => incrementFeedback(product.id, 'dislikes')}
+                      >
+                        <Ionicons name="thumbs-down-outline" size={16} color={THEME_COLOR} />
+                        <Text style={styles.feedbackCount}>
+                          {feedbackCounts[product.id]?.dislikes || 0}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.addButton}
+                      onPress={() => {
+                        addToCart(product);
+                        Alert.alert('Added to cart', `${product.title} was added to your cart.`);
+                      }}
+                    >
                       <Text style={styles.addButtonText}>+ Add to Cart</Text>
                     </TouchableOpacity>
                   </View>
@@ -193,7 +281,11 @@ const HomeScreen = ({ navigation }) => {
             )}
           </View>
 
-          <View style={styles.offerBox}>
+          <TouchableOpacity
+            style={styles.offerBox}
+            onPress={openOffers}
+            activeOpacity={0.8}
+          >
             <Ionicons name="gift-outline" size={35} color={THEME_COLOR} />
             <View style={styles.offerTextWrap}>
               <Text style={styles.offerTitle}>Special Rewards!</Text>
@@ -201,17 +293,19 @@ const HomeScreen = ({ navigation }) => {
                 Discover exclusive shopping offers.
               </Text>
             </View>
-          </View>
+            
+
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   safearea: {
     flex: 1,
-    backgroundColor: '#F5F9FC',
+    backgroundColor: theme.background,
   },
   view: {
     flex: 1,
@@ -225,20 +319,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#0F172A',
+    color: theme.text,
   },
   subtitle: {
     fontSize: 13,
-    color: '#8494A7',
+    color: theme.secondaryText,
     marginTop: 5,
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: theme.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginBottom: 18,
@@ -246,7 +340,7 @@ const styles = StyleSheet.create({
   searchbar: {
     flex: 1,
     fontSize: 16,
-    color: '#0F172A',
+    color: theme.text,
   },
   micButton: {
     marginLeft: 10,
@@ -307,7 +401,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 19,
     fontWeight: 'bold',
-    color: '#0F172A',
+    color: theme.text,
   },
   seeAll: {
     color: THEME_COLOR,
@@ -326,7 +420,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 12,
-    color: '#334155',
+    color: theme.secondaryText,
     fontWeight: '600',
     marginTop: 8,
   },
@@ -344,7 +438,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 24,
     textAlign: 'center',
-    color: '#64748B',
+    color: theme.secondaryText,
   },
   retryButton: {
     marginTop: 12,
@@ -359,7 +453,7 @@ const styles = StyleSheet.create({
   },
   productCard: {
     width: '48%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     overflow: 'hidden',
     marginBottom: 17,
@@ -370,17 +464,31 @@ const styles = StyleSheet.create({
     height: 145,
     resizeMode: 'cover',
   },
+  productImageContainer: {
+    position: 'relative',
+  },
+  wishlistButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 18,
+    backgroundColor: theme.card,
+  },
   productInfo: {
     padding: 10,
   },
   productName: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#0F172A',
+    color: theme.text,
   },
   rating: {
     fontSize: 11,
-    color: '#64748B',
+    color: theme.secondaryText,
     marginTop: 7,
   },
   price: {
@@ -391,9 +499,25 @@ const styles = StyleSheet.create({
   },
   oldPrice: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: theme.secondaryText,
     textDecorationLine: 'line-through',
     fontWeight: 'normal',
+  },
+  feedbackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  feedbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  feedbackCount: {
+    marginLeft: 4,
+    color: theme.secondaryText,
+    fontSize: 12,
+    fontWeight: '600',
   },
   addButton: {
     backgroundColor: THEME_COLOR,
@@ -408,7 +532,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   offerBox: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     borderRadius: 14,
     padding: 16,
     flexDirection: 'row',
@@ -423,11 +547,11 @@ const styles = StyleSheet.create({
   offerTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#0F172A',
+    color: theme.text,
   },
   offerDescription: {
     fontSize: 11,
-    color: '#8494A7',
+    color: theme.secondaryText,
     marginTop: 5,
   },
 });

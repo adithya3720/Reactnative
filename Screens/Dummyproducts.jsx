@@ -8,13 +8,28 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from './ThemeContext';
 
 const Dummyproducts = () => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [feedbackCounts, setFeedbackCounts] = useState({});
+
+  const incrementFeedback = (productId, feedbackType) => {
+    setFeedbackCounts((currentCounts) => ({
+      ...currentCounts,
+      [productId]: {
+        ...(currentCounts[productId] || {}),
+        [feedbackType]: (currentCounts[productId]?.[feedbackType] || 0) + 1,
+      },
+    }));
+  };
 
   const getProducts = async () => {
     setLoading(true);
@@ -58,6 +73,30 @@ const Dummyproducts = () => {
             <Text style={styles.title}>{product.title}</Text>
             <Text style={styles.price}>${product.price}</Text>
             <Text style={styles.description}>{product.description}</Text>
+            <View style={styles.feedbackRow}>
+              <TouchableOpacity
+                style={styles.feedbackButton}
+                accessibilityRole="button"
+                accessibilityLabel={`${feedbackCounts[product.id]?.likes || 0} likes`}
+                onPress={() => incrementFeedback(product.id, 'likes')}
+              >
+                <Ionicons name="thumbs-up-outline" size={16} color="#078DD3" />
+                <Text style={styles.feedbackCount}>
+                  {feedbackCounts[product.id]?.likes || 0}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.feedbackButton}
+                accessibilityRole="button"
+                accessibilityLabel={`${feedbackCounts[product.id]?.dislikes || 0} dislikes`}
+                onPress={() => incrementFeedback(product.id, 'dislikes')}
+              >
+                <Ionicons name="thumbs-down-outline" size={16} color="#078DD3" />
+                <Text style={styles.feedbackCount}>
+                  {feedbackCounts[product.id]?.dislikes || 0}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       ))}
@@ -66,17 +105,17 @@ const Dummyproducts = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   content: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#F5F9FC',
+    backgroundColor: theme.background,
   },
   heading: {
     marginBottom: 16,
     fontSize: 22,
     fontWeight: '700',
-    color: '#0F172A',
+    color: theme.text,
   },
   button: {
     marginBottom: 20,
@@ -99,7 +138,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     padding: 12,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.card,
     elevation: 2,
   },
   image: {
@@ -114,7 +153,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0F172A',
+    color: theme.text,
   },
   price: {
     marginTop: 6,
@@ -123,8 +162,24 @@ const styles = StyleSheet.create({
   },
   description: {
     marginTop: 6,
-    color: '#64748B',
+    color: theme.secondaryText,
     fontSize: 12,
+  },
+  feedbackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  feedbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  feedbackCount: {
+    marginLeft: 4,
+    color: theme.secondaryText,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
 
